@@ -6,6 +6,7 @@ const indexRoute = require("./routes/indexRoute");
 const path = require("path");
 const hapiSwagger = require("hapi-swagger");
 const pack = require("./package.json");
+const Qs = require("qs");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -25,6 +26,9 @@ async function init() {
     //     relativeTo: path.join(__dirname, "public"),
     //   },
     // },
+    query: {
+      parser: (query) => Qs.parse(query),
+    },
   });
 
   await server.register([

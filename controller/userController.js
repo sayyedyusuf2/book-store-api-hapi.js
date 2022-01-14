@@ -1,12 +1,7 @@
 const User = require("../model/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const app = require("./../app");
 const responseFormatter = require("./../utility/responseFormatter");
-
-// exports.getLoginPage = function (request, h) {
-//   return h.view("pages/login");
-// };
 
 exports.getUser = function (request, h) {
   return responseFormatter(
@@ -19,11 +14,10 @@ exports.getUser = function (request, h) {
 
 exports.registerUser = async function (request, h) {
   try {
-    const { name, email, password: plainText } = request.payload;
+    const { username, email, password: plainText } = request.payload;
     const password = await bcrypt.hash(plainText, 10);
-    const newUser = await User.create({ name, email, password });
+    const newUser = await User.create({ username, email, password });
     const token = await jwt.sign(newUser.id, process.env.JWT_SECRET);
-    h.state("token", token);
     return responseFormatter("Successful", 201, `User successfully saved`, {
       token,
       newUser,
@@ -67,7 +61,3 @@ exports.login = async function (request, h) {
     );
   }
 };
-
-// exports.logout = function (request, h) {
-//   return h.redirect("/").unstate("token");
-// };

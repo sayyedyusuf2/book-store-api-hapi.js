@@ -24,22 +24,14 @@ module.exports = [
       auth: false,
       validate: {
         payload: Joi.object({
-          name: Joi.string(),
-          email: Joi.string(),
-          password: Joi.string(),
+          username: Joi.string().required(),
+          email: Joi.string().required(),
+          password: Joi.string().required(),
         }),
       },
     },
   },
-  // {
-  //   method: "GET",
-  //   path: "/login",
-  //   handler: userController.getLoginPage,
-  //   options: {
-  //     tags: ["api"],
-  //     auth: false,
-  //   },
-  // },
+
   {
     method: "POST",
     path: "/login",
@@ -49,19 +41,10 @@ module.exports = [
       auth: false,
       validate: {
         payload: Joi.object({
-          email: Joi.string(),
-          password: Joi.string(),
+          email: Joi.string().required(),
+          password: Joi.string().required(),
         }),
       },
     },
   },
-  // {
-  //   method: "GET",
-  //   path: "/logout",
-  //   handler: userController.logout,
-  //   options: {
-  //     tags: ["api"],
-  //     auth: false,
-  //   },
-  // },
 ];

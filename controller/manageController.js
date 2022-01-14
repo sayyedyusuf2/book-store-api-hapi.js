@@ -4,43 +4,32 @@ const Book = require("./../model/bookModel");
 const Category = require("./../model/categoryModel");
 const responseFormatter = require("./../utility/responseFormatter");
 
-// exports.getMangePage = (request, h) => {
-//   return h.view("manage/index.pug");
-// };
-
-// exports.getMangeBooks = async (requset, h) => {
-//   const books = await Book.find({});
-//   return h.view("manage/books/index.pug", { books });
-// };
-
-// exports.getBooksAddPage = async (requset, h) => {
-//   const categories = await Category.find({});
-//   return h.view("manage/books/add", { categories });
-// };
+exports.getLoggedInUserBooks = async (request, h) => {
+  try {
+    const books = await Book.aggregate([
+      {
+        $match: {
+          userId: request.auth.credentials.user._id,
+        },
+      },
+    ]);
+    return responseFormatter(
+      "Success",
+      200,
+      "This are All books availabale at book store for the " +
+        request.auth.credentials.user.name,
+      books
+    );
+  } catch (err) {
+    console.error(err);
+    return responseFormatter("Error", 500, "Something went wrong", "");
+  }
+};
 
 exports.handleBooksAdd = async (request, h) => {
-  let {
-    title,
-    category,
-    author,
-    publisher,
-    price,
-    description,
-    coverImage,
-    userId,
-  } = request.payload;
-  userId = mongoose.Types.ObjectId(userId);
+  const userId = request.auth.credentials.user._id;
   try {
-    const newBook = await Book.create({
-      userId,
-      title,
-      category,
-      author,
-      publisher,
-      price,
-      description,
-      coverImage,
-    });
+    const newBook = await Book.create({ ...request.payload, userId });
     const userInfo = await Book.aggregate([
       {
         $lookup: {
@@ -58,7 +47,7 @@ exports.handleBooksAdd = async (request, h) => {
       {
         $project: {
           title: 1,
-          addedBy: "$userInfo.name",
+          addedBy: "$userInfo.username",
         },
       },
       {
@@ -67,46 +56,45 @@ exports.handleBooksAdd = async (request, h) => {
         },
       },
     ]);
-    return responseFormatter("Success", 201, "Book has been created", {
-      data: userInfo[0],
-    });
+    return responseFormatter(
+      "Success",
+      201,
+      "Book has been created",
+      userInfo[0]
+    );
   } catch (err) {
     console.log("Save Error", err);
     return responseFormatter("Error", 500, "Something went wrong", "");
   }
 };
 
-// exports.getBooksEditPage = async (request, h) => {
-//   const categories = await Category.find({});
-//   const book = await Book.findOne({ _id: request.params.id });
-//   return h.view("manage/books/edit", { book, categories });
-// };
-
 exports.handleBooksEditPage = async (request, h) => {
   try {
-    const {
-      title,
-      category,
-      author,
-      publisher,
-      price,
-      description,
-      coverImage,
-    } = request.payload;
-    const book = await Book.findOneAndUpdate(
+    const loggedInUserBooks = await Book.aggregate([
+      {
+        $match: {
+          userId: request.auth.credentials.user._id,
+          _id: mongoose.Types.ObjectId(request.params.id),
+        },
+      },
+    ]);
+    if (!loggedInUserBooks.length > 0)
+      return responseFormatter(
+        "Error",
+        400,
+        "You dont have permission to edit this book"
+      );
+    const updatedBook = await Book.findOneAndUpdate(
       { _id: request.params.id },
       {
-        title,
-        category,
-        author,
-        publisher,
-        price,
-        description,
-        coverImage,
+        $set: request.payload,
       },
       { new: true }
     );
-    return responseFormatter("Success", 204, "Book edited successfully", book);
+    return responseFormatter("Success", 204, "Book edited successfully", {
+      oldBook: loggedInUserBooks[0],
+      updatedBook,
+    });
   } catch (err) {
     console.log(err);
     return responseFormatter("Error", 500, "Something went wrong", "");
@@ -115,22 +103,32 @@ exports.handleBooksEditPage = async (request, h) => {
 
 exports.deleteBook = async (request, h) => {
   try {
+    const loggedInUserBooks = await Book.aggregate([
+      {
+        $match: {
+          userId: request.auth.credentials.user._id,
+          _id: mongoose.Types.ObjectId(request.params.id),
+        },
+      },
+    ]);
+    if (!loggedInUserBooks.length > 0)
+      return responseFormatter(
+        "Error",
+        400,
+        "You dont have permission to delete this book"
+      );
     await Book.deleteOne({ _id: request.params.id });
-    return responseFormatter("Success", 202, "Book deleted successfully", "");
+    return responseFormatter(
+      "Success",
+      202,
+      "Book deleted successfully",
+      loggedInUserBooks[0]
+    );
   } catch (err) {
     console.log(err);
     return responseFormatter("Error", 500, "Something went wrong");
   }
 };
-
-// exports.getManageCategories = async (request, h) => {
-//   const categories = await Category.find({});
-//   return h.view("manage/categories/index", { categories });
-// };
-
-// exports.getCategoryAddPage = (request, h) => {
-//   return h.view("manage/categories/add");
-// };
 
 exports.handleCategoryAddPage = async (request, h) => {
   try {
@@ -147,11 +145,6 @@ exports.handleCategoryAddPage = async (request, h) => {
     return responseFormatter("Error", 500, "Something went wrong", "");
   }
 };
-
-// exports.getCategoryEditPage = async (request, h) => {
-//   const category = await Category.findOne({ _id: request.params.id });
-//   return h.view("manage/categories/edit", { category });
-// };
 
 exports.handleCategoryEditPage = async (request, h) => {
   try {

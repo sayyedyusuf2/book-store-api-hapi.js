@@ -5,7 +5,7 @@ const bookSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-  title: String,
+  title: { type: String, unique: true },
   description: String,
   author: String,
   category: String,
@@ -13,10 +13,6 @@ const bookSchema = new mongoose.Schema({
   coverImage: String,
   price: Number,
 });
-
-bookSchema.methods.truncText = function (length) {
-  return this.description.substring(0, length);
-};
 
 const Book = mongoose.model("Book", bookSchema);
 

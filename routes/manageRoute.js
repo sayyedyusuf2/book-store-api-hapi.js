@@ -2,30 +2,20 @@ const Joi = require("joi");
 const manageControllers = require("./../controller/manageController");
 
 module.exports = [
-  // {
-  //   method: "GET",
-  //   path: "/manage",
-  //   handler: manageControllers.getMangePage,
-  //   options: {
-  //     tags: ["api"],
-  //   },
-  // },
-  // {
-  //   method: "GET",
-  //   path: "/manage/books",
-  //   handler: manageControllers.getMangeBooks,
-  //   options: {
-  //     tags: ["api"],
-  //   },
-  // },
-  // {
-  //   method: "GET",
-  //   path: "/manage/books/add",
-  //   handler: manageControllers.getBooksAddPage,
-  //   options: {
-  //     tags: ["api"],
-  //   },
-  // },
+  {
+    method: "GET",
+    path: "/manage/books",
+    handler: manageControllers.getLoggedInUserBooks,
+    options: {
+      tags: ["api"],
+      description: "get logged in user books",
+      validate: {
+        query: Joi.object({
+          token: Joi.string().optional(),
+        }),
+      },
+    },
+  },
   {
     method: "POST",
     path: "/manage/books",
@@ -35,14 +25,13 @@ module.exports = [
       description: "To add the book",
       validate: {
         payload: Joi.object({
-          userId: Joi.string(),
-          title: Joi.string(),
-          author: Joi.string(),
-          publisher: Joi.string(),
-          price: Joi.number(),
-          category: Joi.string(),
-          description: Joi.string(),
-          coverImage: Joi.string(),
+          title: Joi.string().required(),
+          author: Joi.string().required(),
+          publisher: Joi.string().required(),
+          price: Joi.number().required(),
+          category: Joi.string().required(),
+          description: Joi.string().required(),
+          coverImage: Joi.string().required(),
         }),
         query: Joi.object({
           token: Joi.string().optional(),
@@ -50,14 +39,6 @@ module.exports = [
       },
     },
   },
-  // {
-  //   method: "GET",
-  //   path: "/manage/books/edit/{id}",
-  //   handler: manageControllers.getBooksEditPage,
-  //   options: {
-  //     tags: ["api"],
-  //   },
-  // },
   {
     method: "POST",
     path: "/manage/books/edit/{id}",
@@ -68,13 +49,13 @@ module.exports = [
       validate: {
         params: Joi.object({ id: Joi.string().required() }),
         payload: Joi.object({
-          title: Joi.string(),
-          author: Joi.string(),
-          publisher: Joi.string(),
-          price: Joi.number(),
-          category: Joi.string(),
-          description: Joi.string(),
-          coverImage: Joi.string(),
+          title: Joi.string().optional(),
+          author: Joi.string().optional(),
+          publisher: Joi.string().optional(),
+          price: Joi.number().optional(),
+          category: Joi.string().optional(),
+          description: Joi.string().optional(),
+          coverImage: Joi.string().optional(),
         }),
         query: Joi.object({
           token: Joi.string().optional(),
@@ -99,26 +80,9 @@ module.exports = [
       },
     },
   },
-  // {
-  //   method: "GET",
-  //   path: "/manage/categories",
-  //   handler: manageControllers.getManageCategories,
-  //   options: {
-  //     tags: ["api"],
-  //   },
-  // },
-  // {
-  //   method: "GET",
-  //   path: "/manage/categories/add",
-  //   handler: manageControllers.getCategoryAddPage,
-  //   options: {
-  //     tags: ["api"],
-  //   },
-  // },
   {
     method: "GET",
     path: "/manage/categories",
-
     handler: manageControllers.getAllCategories,
     options: {
       tags: ["api"],
@@ -143,14 +107,6 @@ module.exports = [
       },
     },
   },
-  // {
-  //   method: "GET",
-  //   path: "/manage/categories/edit/{id}",
-  //   handler: manageControllers.getCategoryEditPage,
-  //   options: {
-  //     tags: ["api"],
-  //   },
-  // },
   {
     method: "POST",
     path: "/manage/categories/edit/{id}",
